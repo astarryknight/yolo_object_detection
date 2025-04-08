@@ -1,0 +1,28 @@
+# make env: `conda env create -f conda_env.yml`
+
+name: yolo-1
+
+channels:
+  - defaults
+  - conda-forge
+
+dependencies:
+  - python=3.9
+  - pip
+  - pytest
+  - numpy
+  - matplotlib
+  - scikit-learn
+  - pandas
+  - scipy
+  - pytorch
+  - pytorch-lightning=1.9.4
+  - opencv
+  - 
+
+  - ipykernel
+  - jupyter
+  - notebook
+
+  - pip:
+    - ultralytics
