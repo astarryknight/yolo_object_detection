@@ -1,35 +1,39 @@
 import cv2
 import urllib.request
 import numpy as np
-from simple_facerec import SimpleFacerec
 import os
-from dotenv import load_dotenv
+import matplotlib.pyplot as plt
 
-load_dotenv() 
+import ultralytics
+#ultralytics.checks()
+from ultralytics import YOLO
 
-ip = os.getenv("IP")
+#Model training
+#model = YOLO("yolo11s.pt")
+#model.train(data='./datasets/pen/data.yaml', epochs=3)  # train the model
 
-#webcam:
+#after training, pick the best weights from training to use for inference
+model = YOLO("./runs/detect/train6/weights/best.pt")
+
 cap = cv2.VideoCapture(0)
-#ESP32:
-#cap = cv2.VideoCapture(ip)
-
-sfr = SimpleFacerec()
-sfr.load_encoding_images("images/")
 
 while True:
     ret, frame = cap.read()
 
-    cv2.imshow("Frame", frame)
+    # Detect Objects
+    results = model(frame)
 
-    # Detect Faces
-    face_locations, face_names = sfr.detect_known_faces(frame)
-    for face_loc, name in zip(face_locations, face_names):
-        y1, x2, y2, x1 = face_loc[0], face_loc[1], face_loc[2], face_loc[3]
+    for result in results:
+        for box in result.boxes:
+            coordinates = (box.xyxy).tolist()[0] #get coordinates
+            print(coordinates)
+            left, top, right, bottom = coordinates[0], coordinates[1], coordinates[2], coordinates[3]
+            print(left, top)
+            print(right, bottom)
+            cv2.rectangle(frame, (int(left), int(top)), (int(right), int(bottom)), (36,255,12), 3) #draw the bounding box around each object
+            cv2.rectangle(frame, (0,0), (200,200), (36,255,12), 3)
+            cv2.putText(frame, f'Object {int(box.conf*100)}%', (int(left), int(top)-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36,255,12), 2) #put text above each object
 
-    if name is not "Unkown":
-        cv2.putText(frame, name,(x1, y1 - 10), cv2.FONT_HERSHEY_DUPLEX, 1, (0, 0, 200), 2)
-        cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 200), 4)
     cv2.imshow("Frame", frame)
 
     key = cv2.waitKey(1)
